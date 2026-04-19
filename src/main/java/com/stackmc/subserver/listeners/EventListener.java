@@ -102,15 +102,22 @@ public class EventListener implements Listener {
             } catch (NoSuchFieldException e) {
                 System.out.println("Skipped (no handlers): " + eventClass.getName());
                 continue;
+            } catch (Throwable e) {
+                System.out.println("Skipped (unresolved dependency): " + eventClass.getName() + " - " + e.getMessage());
+                continue;
             }
 
-            System.out.println("Registered: " + eventClass.getName());
-            registeredEvents.add(eventClass);
-            Bukkit.getPluginManager().registerEvent(
-                    eventClass, this, EventPriority.MONITOR,
-                    (listener, event) -> onEvent(event),
-                    this.plugin
-            );
+            try {
+                System.out.println("Registered: " + eventClass.getName());
+                registeredEvents.add(eventClass);
+                Bukkit.getPluginManager().registerEvent(
+                        eventClass, this, EventPriority.MONITOR,
+                        (listener, event) -> onEvent(event),
+                        this.plugin
+                );
+            } catch (Throwable e) {
+                System.out.println("Failed to register event: " + eventClass.getName() + " - " + e.getMessage());
+            }
         }
     }
 
