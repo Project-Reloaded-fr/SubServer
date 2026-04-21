@@ -38,7 +38,9 @@ public final class SubServer extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        Instance.getInstances().forEach(Instance::close);
+        instanceFactory.stopLoop();
+        List<Instance> instancesSnapshot = new ArrayList<>(Instance.getInstances());
+        instancesSnapshot.forEach(Instance::close);
         Instance.getInstances().clear();
     }
 
