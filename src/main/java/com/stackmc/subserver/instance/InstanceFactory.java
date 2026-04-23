@@ -16,6 +16,7 @@ public class InstanceFactory {
 
     @Getter private final Set<InstanceType> instanceTypes = new HashSet<>();
     private final Map<InstanceType, Set<Instance>> instances = new HashMap<>();
+    @Getter public Instance autoJoinInstance = null;
 
     private BukkitTask task;
 
@@ -56,6 +57,7 @@ public class InstanceFactory {
                 generateWorlds(type, instance);
                 instance.register();
                 instances.add(instance);
+                if (type.isAutoJoin()) autoJoinInstance = instance;
             }
             this.instances.put(type, instances);
         }
@@ -63,9 +65,9 @@ public class InstanceFactory {
 
     private void generateWorlds(InstanceType type, Instance instance) {
         AtomicInteger i = new AtomicInteger();
-        int max = type.getWorlds().length;
-        for (String worldName : type.getWorlds()) {
-            instance.loadWorld(worldName, (str) -> {
+        int max = type.getWorlds().size();
+        for (InstanceType.InstanciableWorld world : type.getWorlds()) {
+            instance.loadWorld(world.getWorldName(), world.isSavable(), (str) -> {
                 i.getAndIncrement();
                 if (i.get() == max) {
                     Bukkit.getScheduler().runTask(plugin, () -> {

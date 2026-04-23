@@ -17,13 +17,18 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.event.vehicle.VehicleEvent;
 import org.bukkit.event.weather.WeatherEvent;
 import org.bukkit.event.world.WorldEvent;
+import org.bukkit.plugin.Plugin;
 import org.reflections.Reflections;
+import org.reflections.util.ConfigurationBuilder;
 
-import java.lang.reflect.Modifier;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -34,8 +39,14 @@ public class EventListener implements Listener {
 
     public EventListener(SubServer plugin) {
         this.plugin = plugin;
-
         catchAllEvents();
+
+        // Écoute les plugins qui se chargent après toi
+        Bukkit.getPluginManager().registerEvent(
+                PluginEnableEvent.class, this, EventPriority.MONITOR,
+                (listener, event) -> scanPlugin(((PluginEnableEvent) event).getPlugin()),
+                this.plugin
+        );
     }
 
     private static final Set<Class<? extends Event>> skippedEvents = Sets.newHashSet(
@@ -45,21 +56,67 @@ public class EventListener implements Listener {
             PlayerDeathEvent.class
     );
 
+    private final Set<Class<? extends Event>> registeredEvents = new HashSet<>();
+
     private void catchAllEvents() {
-        // The magic happens here
-        Reflections reflections = new Reflections("org.bukkit.event."); // Scan all classes in the org.bukkit.event package
-        Set<Class<? extends Event>> eventClasses = reflections.getSubTypesOf(Event.class); // Get all classes that extend Event
+        // Bukkit events
+        Reflections reflections = new Reflections("org.bukkit.event.");
+        registerEventClasses(reflections.getSubTypesOf(Event.class));
 
-        for (Class<? extends Event> eventClass : eventClasses) { // For each event class
-            if (skippedEvents.contains(eventClass)) { // If the event is in the skippedEvents set, skip it
+        // Events des plugins déjà chargés
+        for (Plugin loadedPlugin : Bukkit.getPluginManager().getPlugins()) {
+            scanPlugin(loadedPlugin);
+        }
+    }
+
+    private void scanPlugin(Plugin targetPlugin) {
+        try {
+            ClassLoader classLoader = targetPlugin.getClass().getClassLoader();
+
+            // Les plugin classloaders de Bukkit sont des URLClassLoader
+            // ClasspathHelper ne les résout pas toujours correctement
+            URL[] urls;
+            if (classLoader instanceof URLClassLoader) {
+                urls = ((URLClassLoader) classLoader).getURLs();
+            } else {
+                System.out.println("ClassLoader non supporté pour: " + targetPlugin.getName());
+                return;
+            }
+
+            ConfigurationBuilder config = new ConfigurationBuilder()
+                    .addClassLoaders(classLoader)
+                    .addUrls(urls); // On passe directement les URLs du JAR
+
+            Reflections pluginReflections = new Reflections(config);
+            registerEventClasses(pluginReflections.getSubTypesOf(Event.class));
+        } catch (Exception e) {
+            System.out.println("Impossible de scanner le plugin: " + targetPlugin.getName() + " - " + e.getMessage());
+        }
+    }
+
+    private void registerEventClasses(Set<Class<? extends Event>> eventClasses) {
+        for (Class<? extends Event> eventClass : eventClasses) {
+            if (skippedEvents.contains(eventClass)) continue;
+            if (registeredEvents.contains(eventClass)) continue; // évite les doubles registrations
+
+            try {
+                eventClass.getDeclaredField("handlers");
+            } catch (NoSuchFieldException e) {
+                continue;
+            } catch (Throwable e) {
                 continue;
             }
 
-            if (Modifier.isAbstract(eventClass.getModifiers())) { // If the class is abstract, skip it
-                continue;
+            try {
+                registeredEvents.add(eventClass);
+                Bukkit.getPluginManager().registerEvent(
+                        eventClass, this, EventPriority.MONITOR,
+                        (listener, event) -> onEvent(event),
+                        this.plugin
+                );
+            } catch (Throwable e) {
+                System.out.println("Failed to register event: " + eventClass.getName() + " - " + e.getMessage());
             }
-            // Register the event
-            Bukkit.getPluginManager().registerEvent(eventClass, this, EventPriority.MONITOR, (listener, event) -> onEvent(event), this.plugin);
         }
     }
 

@@ -10,6 +10,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,12 +36,12 @@ public class InstanceListener implements Listener {
                 .collect(Collectors.toList());
 
         if (autospawnTypes.isEmpty()) {
-            System.err.println("No instance type is set to auto-join.");
+            Bukkit.getLogger().severe("No instance type is set to auto-join.");
             return;
         }
 
         if (autospawnTypes.size() > 1) {
-            System.err.println("More than one instance type is set to auto-join.");
+            Bukkit.getLogger().severe("More than one instance type is set to auto-join.");
             return;
         }
 
@@ -51,7 +52,7 @@ public class InstanceListener implements Listener {
                 .orElse(null);
 
         if (instance == null) {
-            System.err.println("No instance are open for auto-join.");
+            Bukkit.getLogger().severe("No instance are open for auto-join.");
             event.getPlayer().kickPlayer("Server is full, sorry.");
             return;
         }
@@ -102,5 +103,13 @@ public class InstanceListener implements Listener {
 
         event.setCancelled(true);
         instance.sendMessage(String.format(event.getFormat(), event.getPlayer().getDisplayName(), event.getMessage()));
+    }
+
+    @EventHandler
+    public void onRespawn(PlayerRespawnEvent event) {
+        Instance instance = Instance.getInstance(event.getPlayer().getWorld());
+        if (instance != null) {
+            event.setRespawnLocation(instance.getWorlds().get(0).getWorld().getSpawnLocation());
+        }
     }
 }

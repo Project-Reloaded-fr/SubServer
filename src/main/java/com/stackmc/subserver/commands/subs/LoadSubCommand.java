@@ -21,6 +21,7 @@ public class LoadSubCommand implements TabExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command rootCommand, String label, String[] args) {
+        boolean isSavable = false;
         if(args.length == 0) {
             sender.sendMessage("§cVous devez préciser un nom d'instance.");
             return false;
@@ -28,6 +29,9 @@ public class LoadSubCommand implements TabExecutor {
         if(args.length < 2) {
             sender.sendMessage("§cVous devez préciser au moins un monde à charger.");
             return false;
+        }
+        if(args.length > 2) {
+            isSavable = true;
         }
 
         String instanceName = args[0];
@@ -40,7 +44,7 @@ public class LoadSubCommand implements TabExecutor {
         Instance instance = new Instance(instanceName, plugin, null);
 
         for (int i = 1; i < args.length; i++) {
-            instance.loadWorld(args[i], sender::sendMessage);
+            instance.loadWorld(args[i], isSavable, sender::sendMessage);
         }
 
         instance.register();

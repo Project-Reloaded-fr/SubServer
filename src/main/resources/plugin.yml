@@ -2,8 +2,7 @@ name: SubServer
 version: '${project.version}'
 main: com.stackmc.subserver.SubServer
 api-version: '1.20.6'
-depend: [SlimeWorldManager]
-authors: [LoanSpac, Clooooud]
+authors: [LoanSpac, Clooooud, Bloupyi]
 commands:
   subserver:
     description: "SubServer's main command"

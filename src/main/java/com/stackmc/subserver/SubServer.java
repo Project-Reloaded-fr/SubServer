@@ -1,5 +1,7 @@
 package com.stackmc.subserver;
 
+import com.infernalsuite.asp.api.loaders.SlimeLoader;
+import com.infernalsuite.asp.loaders.file.FileLoader;
 import com.stackmc.subserver.commands.SubServerCommand;
 import com.stackmc.subserver.instance.Instance;
 import com.stackmc.subserver.instance.InstanceFactory;
@@ -10,17 +12,22 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.stackmc.subserver.worldgen.SWMUtils.getWorldSlimeFolder;
 
 public final class SubServer extends JavaPlugin {
 
     private final List<Listener> listeners = new ArrayList<>();
     @Getter private final InstanceFactory instanceFactory = new InstanceFactory(this);
+    @Getter public static SlimeLoader loader;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        loader = new FileLoader(new File(getWorldSlimeFolder()));
         this.listeners.add(new InstanceListener(this));
         this.listeners.add(new EventListener(this));
         registerListeners();
@@ -31,7 +38,9 @@ public final class SubServer extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        Instance.getInstances().forEach(Instance::close);
+        instanceFactory.stopLoop();
+        List<Instance> instancesSnapshot = new ArrayList<>(Instance.getInstances());
+        instancesSnapshot.forEach(Instance::close);
         Instance.getInstances().clear();
     }
 

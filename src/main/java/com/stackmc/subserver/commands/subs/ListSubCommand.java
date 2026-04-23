@@ -20,7 +20,7 @@ public class ListSubCommand implements TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command rootCommand, String label, String[] args) {
         String message = Instance.getInstances().stream().map(instance ->  {
-            return instance.getName() + " (" + instance.getWorlds().stream().map(World::getName).collect(Collectors.joining(", ")) + ")";
+            return instance.getName() + " (" + instance.getWorlds().stream().map(Instance.InstanciableWorld::getWorld).map(World::toString).collect(Collectors.joining(", ")) + ")";
         }).collect(Collectors.joining("\n"));
         sender.sendMessage("Voici la liste des instances :\n" + message);
         return false;
