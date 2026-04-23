@@ -27,7 +27,10 @@ import org.reflections.util.ConfigurationBuilder;
 
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 public class EventListener implements Listener {
@@ -86,7 +89,6 @@ public class EventListener implements Listener {
 
             Reflections pluginReflections = new Reflections(config);
             registerEventClasses(pluginReflections.getSubTypesOf(Event.class));
-            Arrays.stream(urls).forEach(url -> System.out.println("URL trouvée: " + url));
         } catch (Exception e) {
             System.out.println("Impossible de scanner le plugin: " + targetPlugin.getName() + " - " + e.getMessage());
         }
@@ -100,15 +102,12 @@ public class EventListener implements Listener {
             try {
                 eventClass.getDeclaredField("handlers");
             } catch (NoSuchFieldException e) {
-                System.out.println("Skipped (no handlers): " + eventClass.getName());
                 continue;
             } catch (Throwable e) {
-                System.out.println("Skipped (unresolved dependency): " + eventClass.getName() + " - " + e.getMessage());
                 continue;
             }
 
             try {
-                System.out.println("Registered: " + eventClass.getName());
                 registeredEvents.add(eventClass);
                 Bukkit.getPluginManager().registerEvent(
                         eventClass, this, EventPriority.MONITOR,
