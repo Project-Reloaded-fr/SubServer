@@ -3,7 +3,6 @@ version: '${project.version}'
 main: com.stackmc.subserver.SubServer
 api-version: '1.20.6'
 authors: [LoanSpac, Clooooud, Bloupyi]
-load: STARTUP
 commands:
   subserver:
     description: "SubServer's main command"
