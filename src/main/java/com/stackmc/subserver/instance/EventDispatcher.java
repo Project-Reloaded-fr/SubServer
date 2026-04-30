@@ -37,6 +37,18 @@ public class EventDispatcher {
             this.createMappings();
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Dispatchable)) return false;
+            return listener.equals(((Dispatchable) o).listener);
+        }
+
+        @Override
+        public int hashCode() {
+            return listener.hashCode();
+        }
+
         private void createMappings() {
             for (Method method : listener.getClass().getDeclaredMethods()) {
                 if (method.isAnnotationPresent(EventHandler.class)) {
