@@ -166,7 +166,7 @@ public class Instance {
 
         //PlayerJoinEvent event = new PlayerJoinEvent(player," ");
         //this.dispatchEvent(event);
-        Bukkit.getPluginManager().callEvent(new InstanceJoinEvent(player,this));
+        Bukkit.getPluginManager().callEvent(new InstanceJoinEvent(this, player));
     }
 
     public void joinInstance(Player player, World world) {
@@ -179,7 +179,7 @@ public class Instance {
         offlinePlayers.add(player);
         player.teleport(getInstanciableWorld(world.getName()).getWorld().getSpawnLocation());
 
-        Bukkit.getPluginManager().callEvent(new InstanceJoinEvent(player,this));
+        Bukkit.getPluginManager().callEvent(new InstanceJoinEvent(this, player));
     }
 
     public void quitInstance(Player player) {
@@ -191,7 +191,7 @@ public class Instance {
 
         //PlayerQuitEvent event = new PlayerQuitEvent(player," ");
         //this.dispatchEvent(event);
-        Bukkit.getPluginManager().callEvent(new InstanceQuitEvent(player,this));
+        Bukkit.getPluginManager().callEvent(new InstanceQuitEvent(this, player));
     }
 
     public void sendMessage(String message) {
