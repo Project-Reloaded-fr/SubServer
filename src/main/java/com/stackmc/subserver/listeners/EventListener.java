@@ -2,6 +2,8 @@ package com.stackmc.subserver.listeners;
 
 import com.google.common.collect.Sets;
 import com.stackmc.subserver.SubServer;
+import com.stackmc.subserver.events.InstanceEvent;
+import com.stackmc.subserver.events.InstanceJoinEvent;
 import com.stackmc.subserver.instance.Instance;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -21,6 +23,7 @@ import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.event.vehicle.VehicleEvent;
 import org.bukkit.event.weather.WeatherEvent;
 import org.bukkit.event.world.WorldEvent;
+import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.Plugin;
 import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
@@ -130,6 +133,9 @@ public class EventListener implements Listener {
     }
 
     private Instance fetchInstance(Event event) {
+        if (event instanceof InstanceEvent instanceEvent) {
+            return instanceEvent.getInstance();
+        }
         World world = fetchWorld(event);
         if (world == null) {
             return null;
@@ -149,6 +155,7 @@ public class EventListener implements Listener {
         worldFetchers.put(VehicleEvent.class, event -> ((VehicleEvent) event).getVehicle().getWorld());
         worldFetchers.put(WeatherEvent.class, event -> ((WeatherEvent) event).getWorld());
         worldFetchers.put(WorldEvent.class, event -> ((WorldEvent) event).getWorld());
+
     }
 
     private World fetchWorld(Event event) {
