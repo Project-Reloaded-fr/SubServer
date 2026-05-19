@@ -3,8 +3,8 @@ package com.stackmc.subserver.listeners;
 import com.google.common.collect.Sets;
 import com.stackmc.subserver.SubServer;
 import com.stackmc.subserver.events.InstanceEvent;
-import com.stackmc.subserver.events.InstanceJoinEvent;
 import com.stackmc.subserver.instance.Instance;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.event.Event;
@@ -15,7 +15,6 @@ import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.hanging.HangingEvent;
 import org.bukkit.event.inventory.InventoryEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -23,7 +22,6 @@ import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.event.vehicle.VehicleEvent;
 import org.bukkit.event.weather.WeatherEvent;
 import org.bukkit.event.world.WorldEvent;
-import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.Plugin;
 import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
@@ -53,7 +51,7 @@ public class EventListener implements Listener {
     }
 
     private static final Set<Class<? extends Event>> skippedEvents = Sets.newHashSet(
-            AsyncPlayerChatEvent.class,
+            AsyncChatEvent.class,
             PlayerJoinEvent.class,
             PlayerQuitEvent.class,
             PlayerDeathEvent.class

@@ -3,16 +3,19 @@ package com.stackmc.subserver.listeners;
 import com.stackmc.subserver.SubServer;
 import com.stackmc.subserver.instance.Instance;
 import com.stackmc.subserver.instance.InstanceType;
+import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.audience.Audience;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class InstanceListener implements Listener {
@@ -58,51 +61,49 @@ public class InstanceListener implements Listener {
         }
 
         instance.dispatchEvent(event);
-        instance.sendMessage(event.getJoinMessage());
+        instance.sendMessage(event.joinMessage());
         instance.joinInstance(event.getPlayer());
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        event.setQuitMessage(null);
+        event.quitMessage(null);
 
         Instance instance = Instance.getInstance(event.getPlayer().getWorld());
         if (instance == null) return;
 
         instance.dispatchEvent(event);
-        event.setQuitMessage(event.getQuitMessage());
+        event.quitMessage(event.quitMessage());
         instance.quitInstance(event.getPlayer());
     }
 
     @EventHandler
     public void onDeath(PlayerDeathEvent event) {
-        event.setDeathMessage(null);
+        event.deathMessage(null);
 
-        Instance instance = Instance.getInstance(event.getEntity().getPlayer().getWorld());
+        Player player = event.getEntity().getPlayer();
+        if (player == null) return;
+        Instance instance = Instance.getInstance(player.getWorld());
         if (instance == null) return;
 
         instance.dispatchEvent(event);
-        instance.sendMessage(event.getDeathMessage());
+        instance.sendMessage(event.deathMessage());
     }
 
     @EventHandler
-    public void onChat(AsyncPlayerChatEvent event) {
-        event.setCancelled(true);
-
+    public void onChat(AsyncChatEvent event) {
         Instance instance = Instance.getInstance(event.getPlayer().getWorld());
-
         if (instance == null) {
-            Bukkit.getLogger().severe("UN JOUEUR TENTE DE PARLER DANS UN MONDE HORS INSTANCE: " + event.getMessage());
+            Bukkit.getLogger().severe("UN JOUEUR TENTE DE PARLER DANS UN MONDE HORS INSTANCE:\n" + event.message());
             return;
         }
+
+        Set<Audience> audience = event.viewers();
+        audience.clear();
+        audience.addAll(instance.getPlayers());
+        audience.add(Bukkit.getConsoleSender());
 
         instance.dispatchEvent(event);
-        if (event.isCancelled()) {
-            return;
-        }
-
-        event.setCancelled(true);
-        instance.sendMessage(String.format(event.getFormat(), event.getPlayer().getDisplayName(), event.getMessage()));
     }
 
     @EventHandler

@@ -11,6 +11,7 @@ import com.stackmc.subserver.worldgen.SWMUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
@@ -195,10 +196,12 @@ public class Instance {
     }
 
     public void sendMessage(String message) {
-        if (message == null) {
-            return;
-        }
+        if (message == null) return;
+        getPlayers().forEach(receiver -> receiver.sendMessage(message));
+    }
 
+    public void sendMessage(Component message) {
+        if (message == null) return;
         getPlayers().forEach(receiver -> receiver.sendMessage(message));
     }
 
