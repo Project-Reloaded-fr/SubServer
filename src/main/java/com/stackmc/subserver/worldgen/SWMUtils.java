@@ -70,11 +70,15 @@ public class SWMUtils {
         }
     }
 
-    public static void loadWorld(String worldName) throws UnknownWorldException, IOException, CorruptedWorldException, NewerFormatException, WorldLoadedException {
+    public static void loadWorld(String worldName, boolean readOnly) throws UnknownWorldException, IOException, CorruptedWorldException, NewerFormatException, WorldLoadedException {
         SlimeLoader loader = SubServer.loader;
 
+        // Temporary (non-savable) worlds must be loaded read-only: ASP only persists
+        // non-read-only worlds (see isReadOnly() guards in SlimeLevelInstance#save and
+        // SWPlugin#onDisable). Otherwise the server saves them back to disk on shutdown,
+        // re-creating the .slime file right after Instance#close deletes it.
         // note that this method should be called asynchronously
-        SlimeWorld world = getSlimePlugin().readWorld(loader, worldName, false, getDefaultProperties());
+        SlimeWorld world = getSlimePlugin().readWorld(loader, worldName, readOnly, getDefaultProperties());
 
         // note that this method must be called synchronously
         getSlimePlugin().loadWorld(world, true);

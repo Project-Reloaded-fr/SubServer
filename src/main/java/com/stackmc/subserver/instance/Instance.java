@@ -95,9 +95,16 @@ public class Instance {
         });
 
         worlds.forEach(world -> {
+            String worldName = world.getWorld().getName();
             Bukkit.unloadWorld(world.getWorld(), false);
             if (!world.isSavable()) {
-                SWMUtils.deleteWorld(world.getWorld().getName());
+                // Don't let one failed deletion abort the cleanup of the remaining
+                // worlds/instances during onDisable.
+                try {
+                    SWMUtils.deleteWorld(worldName);
+                } catch (RuntimeException e) {
+                    Bukkit.getLogger().warning("Impossible de supprimer le monde temporaire " + worldName + " : " + e.getMessage());
+                }
             }
         });
 
@@ -132,7 +139,7 @@ public class Instance {
 
             Bukkit.getScheduler().runTask(plugin, () -> {
                 try {
-                    SWMUtils.loadWorld(destWorldName);
+                    SWMUtils.loadWorld(destWorldName, !isSavable);
                 } catch (UnknownWorldException | IOException | CorruptedWorldException | NewerFormatException |
                          WorldLoadedException e) {
                     finalCallback.accept("§cUne erreur est survenue lors du chargement du monde.");
