@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -87,16 +88,23 @@ public class Instance {
     }
 
     public void close() {
-        offlinePlayers.forEach(offlinePlayer -> {
-            Player player = offlinePlayer.getPlayer();
-            if (player != null) {
-                player.teleport(Bukkit.getWorlds().get(0).getSpawnLocation());
-            }
-        });
+        Location fallback = Bukkit.getWorlds().get(0).getSpawnLocation();
 
         worlds.forEach(world -> {
-            String worldName = world.getWorld().getName();
-            Bukkit.unloadWorld(world.getWorld(), false);
+            World bukkitWorld = world.getWorld();
+            String worldName = bukkitWorld.getName();
+
+            // unloadWorld renvoie false (et laisse le monde en mémoire) tant qu'il
+            // reste des joueurs dedans : on évacue tout le monde réellement présent,
+            // pas seulement les joueurs trackés par l'instance.
+            new ArrayList<>(bukkitWorld.getPlayers()).forEach(player -> player.teleport(fallback));
+
+            if (!Bukkit.unloadWorld(bukkitWorld, false)) {
+                Bukkit.getLogger().warning("Impossible de décharger le monde " + worldName
+                        + " : il reste encore chargé en mémoire (joueurs restants ou WorldUnloadEvent annulé).");
+                return;
+            }
+
             if (!world.isSavable()) {
                 // Don't let one failed deletion abort the cleanup of the remaining
                 // worlds/instances during onDisable.
