@@ -1,6 +1,10 @@
 package com.stackmc.subserver.listeners;
 
 import com.stackmc.subserver.SubServer;
+import com.stackmc.subserver.events.InstanceChatEvent;
+import com.stackmc.subserver.events.InstanceDeathEvent;
+import com.stackmc.subserver.events.InstanceQuitEvent;
+import com.stackmc.subserver.events.InstanceRespawnEvent;
 import com.stackmc.subserver.instance.Instance;
 import com.stackmc.subserver.instance.InstanceType;
 import io.papermc.paper.event.player.AsyncChatEvent;
@@ -79,13 +83,22 @@ public class InstanceListener implements Listener {
 
     @EventHandler
     public void onDeath(PlayerDeathEvent event) {
-        event.deathMessage(null);
 
         Player player = event.getEntity().getPlayer();
         if (player == null) return;
         Instance instance = Instance.getInstance(player.getWorld());
+
+        InstanceDeathEvent deathEvent = new InstanceDeathEvent(instance, player, event.getDamageSource(), event.deathMessage());
+        Bukkit.getPluginManager().callEvent(deathEvent);
+
+        if (deathEvent.isCancelled()) {
+            event.setCancelled(true);
+            return;
+        }
+
         if (instance == null) return;
 
+        event.deathMessage(null);
         instance.dispatchEvent(event);
         instance.sendMessage(event.deathMessage());
     }
@@ -93,15 +106,23 @@ public class InstanceListener implements Listener {
     @EventHandler
     public void onChat(AsyncChatEvent event) {
         Instance instance = Instance.getInstance(event.getPlayer().getWorld());
-        if (instance == null) {
-            Bukkit.getLogger().severe("UN JOUEUR TENTE DE PARLER DANS UN MONDE HORS INSTANCE:\n" + event.message());
-            return;
-        }
 
         Set<Audience> audience = event.viewers();
         audience.clear();
-        audience.addAll(instance.getPlayers());
+        if (instance == null) {
+            audience.addAll(event.getPlayer().getWorld().getPlayers());
+        } else {
+            audience.addAll(instance.getPlayers());
+        }
         audience.add(Bukkit.getConsoleSender());
+
+        InstanceChatEvent chatEvent = new InstanceChatEvent(instance, event.getPlayer(), event.message(), audience);
+        Bukkit.getPluginManager().callEvent(chatEvent);
+
+        if (chatEvent.isCancelled()) {
+            event.setCancelled(true);
+            return;
+        }
 
         instance.dispatchEvent(event);
     }
@@ -109,6 +130,14 @@ public class InstanceListener implements Listener {
     @EventHandler
     public void onRespawn(PlayerRespawnEvent event) {
         Instance instance = Instance.getInstance(event.getPlayer().getWorld());
+
+        InstanceRespawnEvent respawnEvent = new InstanceRespawnEvent(instance, event.getPlayer(), event.getRespawnFlags(), event.getRespawnLocation(), event.getRespawnReason(), event.isAnchorSpawn(), event.isBedSpawn(), event.isMissingRespawnBlock());
+        Bukkit.getPluginManager().callEvent(respawnEvent);
+
+        if (respawnEvent.isCancelled()) {
+            return;
+        }
+
         if (instance != null) {
             event.setRespawnLocation(instance.getWorlds().get(0).getWorld().getSpawnLocation());
         }

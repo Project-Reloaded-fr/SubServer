@@ -5,6 +5,7 @@ import com.infernalsuite.asp.api.exceptions.NewerFormatException;
 import com.infernalsuite.asp.api.exceptions.UnknownWorldException;
 import com.infernalsuite.asp.api.exceptions.WorldLoadedException;
 import com.stackmc.subserver.SubServer;
+import com.stackmc.subserver.events.InstanceChatEvent;
 import com.stackmc.subserver.events.InstanceJoinEvent;
 import com.stackmc.subserver.events.InstanceQuitEvent;
 import com.stackmc.subserver.worldgen.SWMUtils;
@@ -171,6 +172,13 @@ public class Instance {
     }
 
     public void joinInstance(Player player) {
+        InstanceJoinEvent event = new InstanceJoinEvent(this, player);
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) {
+            return;
+        }
+
         Instance oldInstance = Instance.getInstance(player.getWorld());
         if(oldInstance != null) oldInstance.quitInstance(player);
         getPlayers().forEach(target -> {
@@ -182,10 +190,16 @@ public class Instance {
 
         //PlayerJoinEvent event = new PlayerJoinEvent(player," ");
         //this.dispatchEvent(event);
-        Bukkit.getPluginManager().callEvent(new InstanceJoinEvent(this, player));
     }
 
     public void joinInstance(Player player, World world) {
+        InstanceJoinEvent event = new InstanceJoinEvent(this, player);
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) {
+            return;
+        }
+
         Instance oldInstance = Instance.getInstance(player.getWorld());
         if(oldInstance != null) oldInstance.quitInstance(player);
         getPlayers().forEach(target -> {
@@ -194,11 +208,16 @@ public class Instance {
         });
         offlinePlayers.add(player);
         player.teleport(getInstanciableWorld(world.getName()).getWorld().getSpawnLocation());
-
-        Bukkit.getPluginManager().callEvent(new InstanceJoinEvent(this, player));
     }
 
     public void quitInstance(Player player) {
+        InstanceQuitEvent event = new InstanceQuitEvent(this, player);
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) {
+            return;
+        }
+
         getPlayers().forEach(target -> {
             player.hidePlayer(plugin, target);
             target.hidePlayer(plugin, player);
@@ -207,7 +226,6 @@ public class Instance {
 
         //PlayerQuitEvent event = new PlayerQuitEvent(player," ");
         //this.dispatchEvent(event);
-        Bukkit.getPluginManager().callEvent(new InstanceQuitEvent(this, player));
     }
 
     public void sendMessage(String message) {

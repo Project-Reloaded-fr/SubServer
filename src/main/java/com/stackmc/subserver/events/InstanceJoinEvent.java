@@ -9,6 +9,8 @@ public class InstanceJoinEvent extends InstanceEvent {
     private static final HandlerList handlers = new HandlerList();
     @Getter private final Player player;
 
+    @Getter private boolean isCancelled;
+
     public InstanceJoinEvent(Instance instance, Player player) {
         super(instance);
         this.player = player;
@@ -21,5 +23,10 @@ public class InstanceJoinEvent extends InstanceEvent {
 
     public static HandlerList getHandlerList() {
         return handlers;
+    }
+
+    @Override
+    public void setCancelled(boolean cancel) {
+        this.isCancelled = cancel;
     }
 }
