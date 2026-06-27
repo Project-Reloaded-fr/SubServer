@@ -117,7 +117,7 @@ public class InstanceListener implements Listener {
         audience.add(Bukkit.getConsoleSender());
 
         InstanceChatEvent chatEvent = new InstanceChatEvent(instance, event.getPlayer(), event.message(), audience);
-        Bukkit.getPluginManager().callEvent(chatEvent);
+        Bukkit.getScheduler().runTaskAsynchronously(plugin,() -> Bukkit.getPluginManager().callEvent(chatEvent));
 
         if (chatEvent.isCancelled()) {
             event.setCancelled(true);
