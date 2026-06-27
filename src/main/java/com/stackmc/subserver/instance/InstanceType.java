@@ -27,6 +27,15 @@ public class InstanceType {
         this.maxPlayers = maxPlayers;
     }
 
+    @Override
+    protected InstanceType clone() throws CloneNotSupportedException {
+        InstanceType type = new InstanceType(name, autoJoin, maxPlayers);
+        type.setMaxInstancesCount(maxInstancesCount);
+        type.setPostInitRunnable(postInitRunnable);
+        type.worlds.addAll(worlds);
+        return type;
+    }
+
     @Getter
     @RequiredArgsConstructor
     public static class InstanciableWorld {
