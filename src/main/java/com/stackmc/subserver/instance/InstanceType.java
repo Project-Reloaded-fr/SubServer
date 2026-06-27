@@ -28,7 +28,7 @@ public class InstanceType {
     }
 
     @Override
-    public InstanceType clone() throws CloneNotSupportedException {
+    public InstanceType clone() {
         InstanceType type = new InstanceType(name, autoJoin, maxPlayers);
         type.setMaxInstancesCount(maxInstancesCount);
         type.setPostInitRunnable(postInitRunnable);
