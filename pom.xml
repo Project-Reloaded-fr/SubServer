@@ -6,7 +6,7 @@
 
     <groupId>com.stackmc</groupId>
     <artifactId>SubServer</artifactId>
-    <version>1.4.6-SNAPSHOT</version>
+    <version>1.4.7-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>SubServer</name>

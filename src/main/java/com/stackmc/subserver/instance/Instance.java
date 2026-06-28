@@ -100,7 +100,7 @@ public class Instance {
             // pas seulement les joueurs trackés par l'instance.
             new ArrayList<>(bukkitWorld.getPlayers()).forEach(player -> player.teleport(fallback));
 
-            if (!Bukkit.unloadWorld(bukkitWorld, false)) {
+            if (!Bukkit.unloadWorld(bukkitWorld, true)) {
                 Bukkit.getLogger().warning("Impossible de décharger le monde " + worldName
                         + " : il reste encore chargé en mémoire (joueurs restants ou WorldUnloadEvent annulé).");
                 return;
