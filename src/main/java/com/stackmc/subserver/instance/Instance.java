@@ -120,6 +120,7 @@ public class Instance {
         worlds.clear();
         offlinePlayers.clear();
         instances.remove(this);
+        plugin.getInstanceFactory().removeInstance(this);
     }
 
     public void loadWorld(String worldName, boolean isSavable, @Nullable Consumer<String> callback) {

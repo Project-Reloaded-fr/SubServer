@@ -3,6 +3,7 @@ package com.stackmc.subserver.instance;
 import com.stackmc.subserver.SubServer;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -16,12 +17,23 @@ public class InstanceFactory {
 
     @Getter private final Set<InstanceType> instanceTypes = new HashSet<>();
     private final Map<InstanceType, Set<Instance>> instances = new HashMap<>();
-    @Getter public Instance autoJoinInstance = null;
+    @Getter @Setter public Instance autoJoinInstance = null;
 
     private BukkitTask task;
 
     public Set<Instance> getInstances(InstanceType type) {
         return instances.getOrDefault(type, new HashSet<>());
+    }
+
+    public void removeInstance(Instance instance) {
+        Set<Instance> typeInstances = instances.get(instance.getType());
+        if (typeInstances != null) {
+            typeInstances.remove(instance);
+        }
+
+        if (autoJoinInstance == instance) {
+            autoJoinInstance = null;
+        }
     }
 
     public void registerType(InstanceType type) {
